@@ -9,4 +9,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="gray_A700">#5F8C8686</color>
+
+    <color name="read1">#50C51C1C</color>
+    <color name="read2">#50DCC609</color>
+    <color name="read3">#50167501</color>
+    <color name="read4">#5078F808</color>
+
 </resources>

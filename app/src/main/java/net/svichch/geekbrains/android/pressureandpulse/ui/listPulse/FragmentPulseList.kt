@@ -9,7 +9,10 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import net.svichch.geekbrains.android.pressureandpulse.R
+import net.svichch.geekbrains.android.pressureandpulse.data.firestore.viewmodel.FirestoreViewModel
 import net.svichch.geekbrains.android.pressureandpulse.databinding.FragmentPulseListBinding
 import net.svichch.geekbrains.android.pressureandpulse.ui.MainActivity
 import net.svichch.geekbrains.android.pressureandpulse.ui.addPage.FragmentAddPulse
@@ -19,6 +22,7 @@ class FragmentPulseList : Fragment() {
     private var columnCount = 1
     private lateinit var fragment: FragmentPulseListBinding
     private lateinit var adapter: PulseViewAdapter
+    private lateinit var dbFirestore: FirestoreViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -26,9 +30,29 @@ class FragmentPulseList : Fragment() {
     ): View? {
         fragment = FragmentPulseListBinding.inflate(inflater, container, false)
         fragment.list.layoutManager = GridLayoutManager(context, columnCount)
+        dbFirestore = (requireActivity() as MainActivity).getDbFirestore()
         addAdapter()
         setupFab()
+        getPulseList()
         return fragment.root
+    }
+
+    override fun onStart() {
+        super.onStart()
+        adapter.notifyDataSetChanged()
+    }
+
+    @SuppressLint("CheckResult")
+    private fun getPulseList() {
+        dbFirestore
+            .getPulseList()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { adapter.update(it) },
+                {
+                    it.printStackTrace()
+                })
     }
 
     private fun setupFab() {

@@ -3,13 +3,17 @@ package net.svichch.geekbrains.android.pressureandpulse.ui.listPulse
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import net.svichch.geekbrains.android.pressureandpulse.data.firestore.Pulse
 import net.svichch.geekbrains.android.pressureandpulse.databinding.ItemFragmentPulseBinding
+import java.text.SimpleDateFormat
+import java.util.*
 
 class PulseViewAdapter(
 ) : RecyclerView.Adapter<PulseViewAdapter.ViewHolder>() {
 
-    var testSize = 15
+    private val pulseList = emptyList<Pulse>().toMutableList()
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
         return ViewHolder(
@@ -22,17 +26,33 @@ class PulseViewAdapter(
 
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.time.text = "8:00"
-        holder.upperPressure.text = "150"
-        holder.lowerPressure.text = "75"
-        holder.pulse.text = "70"
+
+    fun update(newPulseList: List<Pulse>) {
+        val diffResult = DiffUtil.calculateDiff(PulseDiffUtilCallback(pulseList, newPulseList))
+        pulseList.clear()
+        pulseList.addAll(newPulseList)
+        diffResult.dispatchUpdatesTo(this)
     }
 
-    override fun getItemCount(): Int = testSize
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val createdFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+        // myView.setBackground(myGradBg)
+        val upperPressure = pulseList[position].upperPressure
+        val lowerPressure = pulseList[position].lowerPressure
+        holder.item.setBackground(ColorPressureGradientDrawable().getGradient(upperPressure,lowerPressure))
+        holder.time.text = createdFormat.format(pulseList[position].date)
+        holder.upperPressure.text = upperPressure.toString()
+        holder.lowerPressure.text = lowerPressure.toString()
+        holder.pulse.text = pulseList[position].pulse.toString()
+    }
+
+    override fun getItemCount(): Int = pulseList.size
 
     inner class ViewHolder(binding: ItemFragmentPulseBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
+        val item = binding.itemList
         val time: TextView = binding.time
         val upperPressure: TextView = binding.upperPressure
         val lowerPressure: TextView = binding.lowerPressure
